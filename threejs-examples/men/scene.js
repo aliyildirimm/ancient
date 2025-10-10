@@ -1,6 +1,5 @@
 import * as THREE from "https://threejs.org/build/three.module.js";
 
-// helpers kept tiny
 const createHuman = () => {
     const geo = new THREE.BoxGeometry(1, 1, 1);
     const mat = new THREE.MeshLambertMaterial({ color: 0xffffff });
@@ -24,7 +23,21 @@ const createPlane = () => {
     plane.rotation.x = -Math.PI / 2; // make it horizontal
     plane.position.y = -0.5; // slightly below the cube
     return plane;
-  };
+};
+
+
+const createCamera = (x,y,z) => {
+    const camera = new THREE.PerspectiveCamera(
+        75,
+        window.innerWidth / window.innerHeight,
+        0.1,
+        1000
+    );
+    camera.position.z = z;
+    camera.position.x = x;
+    return camera;
+}
+
 
 const attachEventHandlers = () => {
     // events
@@ -37,6 +50,7 @@ const attachEventHandlers = () => {
         if (k in keys) keys[k] = false;
     });
 }
+
 
 const keys = { w: false, a: false, s: false, d: false };
 const speed = 2;
@@ -51,15 +65,12 @@ export function main() {
     // scene
     const scene = new THREE.Scene();
 
-    // camera
-    const camera = new THREE.PerspectiveCamera(
-        75,
-        window.innerWidth / window.innerHeight,
-        0.1,
-        1000
-    );
-    camera.position.z = 5;
-    scene.add(camera);
+    // three cameras
+    const camera1 = createCamera(-2, 0, 5);
+    const camera2 = createCamera(0, 0, 5);
+    const camera3 = createCamera(2, 0, 5);
+    scene.add(camera1, camera2, camera3);
+    let currentCamera = camera2;
 
     // human + light
     const human = createHuman();
@@ -76,6 +87,17 @@ export function main() {
     const renderer = new THREE.WebGLRenderer({ canvas });
     renderer.setSize(window.innerWidth, window.innerHeight);
 
+
+    document.querySelectorAll("[data-cam]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const camIndex = btn.getAttribute("data-cam");
+          console.log("here")
+          if (camIndex === "1") currentCamera = camera1;
+          if (camIndex === "2") currentCamera = camera2;
+          if (camIndex === "3") currentCamera = camera3;
+        });
+    });
+
     // loop
     let prevTime = performance.now();
     function loop(now) {
@@ -87,7 +109,7 @@ export function main() {
         if (keys.a) human.position.x -= speed * dt;
         if (keys.d) human.position.x += speed * dt;
 
-        renderer.render(scene, camera);
+        renderer.render(scene, currentCamera);
         requestAnimationFrame(loop);
     }
 
