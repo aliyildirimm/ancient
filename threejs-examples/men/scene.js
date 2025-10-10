@@ -87,11 +87,9 @@ export function main() {
     const renderer = new THREE.WebGLRenderer({ canvas });
     renderer.setSize(window.innerWidth, window.innerHeight);
 
-
     document.querySelectorAll("[data-cam]").forEach((btn) => {
         btn.addEventListener("click", () => {
           const camIndex = btn.getAttribute("data-cam");
-          console.log("here")
           if (camIndex === "1") currentCamera = camera1;
           if (camIndex === "2") currentCamera = camera2;
           if (camIndex === "3") currentCamera = camera3;
