@@ -1,0 +1,35 @@
+<!doctype html>
+<html>
+  <body style="margin:0;background:#111;">
+    <canvas data-canvas></canvas>
+
+    <script  type="importmap">{
+        "imports": {
+            "three": "https://threejs.org/build/three.module.js"
+        }
+    }</script>
+    
+    <script type="module">
+        import * as THREE from 'three';
+        // after loading your GLB with GLTFLoader:
+        const model = gltf.scene;
+        scene.add(model);
+
+        const mixer = new THREE.AnimationMixer(model);
+        const clips = gltf.animations; // e.g., ["Idle","Walk","Run"]
+
+        const idle = THREE.AnimationClip.findByName(clips, 'Idle');
+        const walk = THREE.AnimationClip.findByName(clips, 'Walk');
+
+        const idleAction = mixer.clipAction(idle).play();
+        const walkAction = mixer.clipAction(walk);
+
+        function setWalking(on) {
+            if (on) { walkAction.reset().play(); idleAction.crossFadeTo(walkAction, 0.3, false); }
+            else    { idleAction.reset().play(); walkAction.crossFadeTo(idleAction, 0.3, false); }
+        }
+
+        function tick(dt) { mixer.update(dt); /* render here */ }
+    </script>
+  </body>
+</html>
