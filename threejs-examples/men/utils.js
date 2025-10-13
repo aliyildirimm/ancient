@@ -23,8 +23,8 @@ export const createPlane = () => {
     // make a 20x20 plane
     const overallplane = new THREE.Group();
     let arr = []
-    for (let i = 0; i < 10; i++) {
-        for (let j = 0; j < 10; j++) {
+    for (let i = -8; i < 8; i++) {
+        for (let j = -8; j < 8; j++) {
             const geo = new THREE.PlaneGeometry(2, 2);
             const mat = new THREE.MeshLambertMaterial({
                 color: Math.floor(Math.random() * 0xffffff),
