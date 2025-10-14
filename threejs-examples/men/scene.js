@@ -39,6 +39,12 @@ export const scene = (canvas) => {
     // this is a main loop that iterates infinitely because of the recursive call.
     // we set the SPEED and rotation SPEED at the top of the file.
     // here what we do is, adjust the movements. 
+
+    // above comment was wrong:
+    // this is the correct definition of this loop:
+    // This only requests the browser to call your callback before the next rendering loop:
+    // It requests the browser to call a user-supplied callback function before the next repaint.
+
     let prevTime = performance.now();
     const run = (now) => {
         const dt = (now - prevTime) / 1000;
