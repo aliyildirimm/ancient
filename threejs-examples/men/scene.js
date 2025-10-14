@@ -1,22 +1,9 @@
 import * as THREE from "https://threejs.org/build/three.module.js";
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { createCamera, createLight, createPlane } from "./utils.js";
+import { createCamera, createLight } from "./utils.js";
 import { createHuman } from "./human.js";
-
-
-const KEYS = { w: false, a: false, s: false, d: false };
-const SPEED = 2;
-const ROTATION_SPEED = 2;
-
-// think of a circle.
-// and 0 to 360 go in the counter clockwise
-// then the angles would make sense
-const TARGET_ROTATIONS = {
-    w: Math.PI,
-    s: 0,
-    a: 3 * Math.PI / 2,
-    d: Math.PI / 2
-};
+import { createPlane } from "./plane.js";
+import { KEYS, SPEED, JUMP_SPEED, ROTATION_SPEED, TARGET_ROTATIONS } from "./constants.js"
 
 export const scene = (canvas) => {
     const scene = new THREE.Scene();
@@ -48,6 +35,7 @@ export const scene = (canvas) => {
         requestAnimationFrame(run);
     }
 
+    const targetHeight = 2;
     // this is a main loop that iterates infinitely because of the recursive call.
     // we set the SPEED and rotation SPEED at the top of the file.
     // here what we do is, adjust the movements. 
@@ -61,8 +49,11 @@ export const scene = (canvas) => {
         if (KEYS.s) human.position.z += SPEED * dt;
         if (KEYS.a) human.position.x -= SPEED * dt;
         if (KEYS.d) human.position.x += SPEED * dt;
-
-        console.log()
+        // if (KEYS.space) { 
+        //     while(targetHeight - human.position.y > 0) {
+        //         human.position.y += JUMP_SPEED * dt;
+        //     }
+        // }
 
         // Rotation — just animate toward a target
         let targetRotation = human.rotation.y;
@@ -73,8 +64,17 @@ export const scene = (canvas) => {
         if (KEYS.a) targetRotation = TARGET_ROTATIONS.a; // left
         if (KEYS.d) targetRotation = TARGET_ROTATIONS.d; // right
 
-        if(targetRotation - currentRotation !== 0) {
-            human.rotation.y += (targetRotation - currentRotation) * dt * ROTATION_SPEED;
+        let diff = targetRotation - currentRotation; 
+        if(diff !== 0) {
+            if (Math.abs(diff) > Math.PI) {
+                if (diff > 0) {
+                    diff = diff - (2 * Math.PI)
+                } else {
+                    diff = diff + (2 * Math.PI)
+                }
+            }
+            
+            human.rotation.y += diff * dt * ROTATION_SPEED;
         }
 
         renderer.render(scene, currentCamera);
@@ -82,13 +82,12 @@ export const scene = (canvas) => {
     }
 
     const handleKeyboardEvents = (event) => {
+        let k = event.key.toLowerCase();
         if (event.type === "keydown"){
-            const k = event.key.toLowerCase();
             if (k in KEYS) KEYS[k] = true;
         }
     
         if (event.type === "keyup"){
-            const k = event.key.toLowerCase();
             if (k in KEYS) KEYS[k] = false;
         }
     }
@@ -108,9 +107,30 @@ export const scene = (canvas) => {
         };
     }
 
+    const jump = () => {
+        human.position.y += JUMP_SPEED;
+        if(targetHeight - human.position.y <= 0) {
+            jumpDown();
+            return;
+        }
+
+        requestAnimationFrame(jump);
+    }
+
+    const jumpDown = () => {
+        human.position.y = human.position.y - JUMP_SPEED;
+
+        if (human.position.y <= 0) {
+            return;
+        } 
+
+        requestAnimationFrame(jumpDown);
+    }
+
     return {
         animate,
         handleKeyboardEvents,
-        handleCameraChangeEvent
+        handleCameraChangeEvent,
+        jump
     }
 }
