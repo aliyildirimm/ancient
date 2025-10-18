@@ -15,6 +15,8 @@ export const scene = (canvas) => {
     let currentCamera = camera2;
 
     const human = createHuman();
+    // human should be appended directly at top of the tiles not some random value
+    human.position.set(0, 1, 0);
     scene.add(human);
 
     const light = createLight();

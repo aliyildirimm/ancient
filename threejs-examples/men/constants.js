@@ -11,3 +11,8 @@ export const TARGET_ROTATIONS = {
 
 export const GRID_WIDTH = 2;
 export const GRID_DEPTH = 2;
+export const GRID_HEIGHT = 0.5;
+
+export const BUILDING_WIDTH = 2;
+export const BUILDING_DEPTH = 2;
+export const BUILDING_HEIGHTS = [2, 4, 6];
