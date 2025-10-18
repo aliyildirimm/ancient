@@ -20,8 +20,8 @@ export const createPlane = () => {
     new THREE.BoxGeometry(BUILDING_WIDTH, BUILDING_HEIGHTS[2], BUILDING_DEPTH),
   ];
 
-  for (let i = -16; i < 16; i++) {
-    for (let j = -16; j < 16; j++) {
+  for (let i = -16; i < 1; i++) {
+    for (let j = -16; j < 1; j++) {
       const plane = new THREE.Mesh(groundGeometry, groundMaterial);
       plane.position.set(i * GRID_WIDTH, 0, j * GRID_DEPTH);
       plane.receiveShadow = true;

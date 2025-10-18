@@ -9,12 +9,13 @@ export const createLight = () => {
 
 export const createCamera = (x,y,z) => {
     const camera = new THREE.PerspectiveCamera(
-        75,
+        45,
         window.innerWidth / window.innerHeight,
         0.1,
         1000
     );
     camera.position.z = z;
+    camera.position.y = y;
     camera.position.x = x;
     return camera;
 }

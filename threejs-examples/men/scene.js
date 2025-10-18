@@ -3,20 +3,24 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { createCamera, createLight } from "./utils.js";
 import { createHuman } from "./human.js";
 import { createPlane } from "./plane.js";
-import { KEYS, SPEED, JUMP_SPEED, ROTATION_SPEED, TARGET_ROTATIONS } from "./constants.js"
+import { KEYS, SPEED, JUMP_SPEED, ROTATION_SPEED, TARGET_ROTATIONS, GRID_HEIGHT } from "./constants.js"
 
 export const scene = (canvas) => {
     const scene = new THREE.Scene();
 
-    const camera1 = createCamera(-2, 0, 5);
-    const camera2 = createCamera(0, 0, 5);
-    const camera3 = createCamera(2, 0, 5);
+    const camera1 = createCamera(-15, 15, 15);
+    const camera2 = createCamera(0, 15, 15);
+    const camera3 = createCamera(15, 15, 15);
     scene.add(camera1, camera2, camera3);
     let currentCamera = camera2;
 
     const human = createHuman();
     // human should be appended directly at top of the tiles not some random value
-    human.position.set(0, 1, 0);
+    human.position.set(0, GRID_HEIGHT / 2 + 1, 0);
+    // I ADDED this to see back of the human
+    human.rotation.y = Math.PI;
+
+
     scene.add(human);
 
     const light = createLight();
@@ -31,8 +35,9 @@ export const scene = (canvas) => {
     renderer.setSize(window.innerWidth, window.innerHeight);
 
     const controls = new OrbitControls(currentCamera, renderer.domElement);
-    controls.update();
 
+
+    currentCamera.lookAt(human.position);
     const animate = () => {
         requestAnimationFrame(run);
     }
@@ -57,11 +62,6 @@ export const scene = (canvas) => {
         if (KEYS.s) human.position.z += SPEED * dt;
         if (KEYS.a) human.position.x -= SPEED * dt;
         if (KEYS.d) human.position.x += SPEED * dt;
-        // if (KEYS.space) { 
-        //     while(targetHeight - human.position.y > 0) {
-        //         human.position.y += JUMP_SPEED * dt;
-        //     }
-        // }
 
         // Rotation — just animate toward a target
         let targetRotation = human.rotation.y;
@@ -85,6 +85,17 @@ export const scene = (canvas) => {
             human.rotation.y += diff * dt * ROTATION_SPEED;
         }
 
+        // how far above / behind you want the camera
+        const height = 10;
+        const distance = -10;
+        const offset = new THREE.Vector3(0, height, distance);
+
+        // rotate the offset by human's current rotation
+        offset.applyAxisAngle(new THREE.Vector3(0, 1, 0), human.rotation.y);
+
+        // place the camera relative to the human
+        currentCamera.position.copy(human.position).add(offset);
+        currentCamera.lookAt(human.position);
         renderer.render(scene, currentCamera);
         requestAnimationFrame(run);
     }
@@ -127,7 +138,6 @@ export const scene = (canvas) => {
 
     const jumpDown = () => {
         human.position.y = human.position.y - JUMP_SPEED;
-
         if (human.position.y <= 0) {
             return;
         } 
