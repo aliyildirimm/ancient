@@ -1,11 +1,11 @@
 import * as THREE from "https://threejs.org/build/three.module.js";
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { createCamera, createLight } from "./utils.js";
-import { createHumanEntity } from "./entities/index.js";
-import { createPlane } from "./plane.js";
-import { KEYS } from "./constants.js";
+import { createCamera, createLight } from "../utils/index.js";
+import { createHumanEntity } from "../entities/index.js";
+import { createPlane } from "../world/index.js";
+import { KEYS } from "../config/constants.js";
 
-export const scene = (canvas) => {
+export const createGameScene = (canvas) => {
     const scene = new THREE.Scene();
 
     // Setup cameras

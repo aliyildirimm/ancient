@@ -2,7 +2,7 @@
  * Movement Component
  * Handles keyboard-based movement
  */
-import { SPEED, TARGET_ROTATIONS } from "../constants.js";
+import { SPEED, TARGET_ROTATIONS } from "../config/constants.js";
 
 export class MovementComponent {
     constructor(speed = SPEED) {
