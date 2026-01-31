@@ -1,7 +1,7 @@
 import * as THREE from "https://threejs.org/build/three.module.js";
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { createCamera, createLight } from "./utils.js";
-import { createHumanEntity } from "./entities/index.js";
+import { createHumanEntity } from "./human.js";
 import { createPlane } from "./plane.js";
 import { KEYS } from "./constants.js";
 
@@ -38,9 +38,6 @@ export const scene = (canvas) => {
 
     // Setup camera controls
     const controls = new OrbitControls(currentCamera, renderer.domElement);
-    controls.enableDamping = true; // Enable smooth camera movement
-    controls.dampingFactor = 0.05;
-    controls.target.copy(human.position);
     currentCamera.lookAt(human.position);
 
     // Game loop
@@ -54,12 +51,22 @@ export const scene = (canvas) => {
             entity.update(dt);
         });
 
-        // Update OrbitControls target to follow human
-        // This allows zoom/pan while still following the player
-        controls.target.copy(human.position);
+        // Camera follows human
+        const height = 10;
+        const distance = -10;
+        const offset = new THREE.Vector3(0, height, distance);
         
-        // Update OrbitControls (required for damping and smooth movement)
-        controls.update();
+        // Rotate offset by human's rotation
+        const rotation = humanEntity.getComponent('rotation');
+        if (rotation) {
+            offset.applyAxisAngle(new THREE.Vector3(0, 1, 0), rotation.getRotation());
+        } else {
+            offset.applyAxisAngle(new THREE.Vector3(0, 1, 0), human.rotation.y);
+        }
+
+        // Position camera relative to human
+        currentCamera.position.copy(human.position).add(offset);
+        currentCamera.lookAt(human.position);
         
         renderer.render(scene, currentCamera);
         requestAnimationFrame(run);
@@ -93,15 +100,12 @@ export const scene = (canvas) => {
         if (cameraIndex === "1") {
             currentCamera = camera1;
             controls.object = camera1;
-            controls.target.copy(human.position);
         } else if (cameraIndex === "2") {
             currentCamera = camera2;
             controls.object = camera2;
-            controls.target.copy(human.position);
         } else if (cameraIndex === "3") {
             currentCamera = camera3;
             controls.object = camera3;
-            controls.target.copy(human.position);
         }
     }
 
