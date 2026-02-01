@@ -3,7 +3,7 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { createCamera, createLight } from "../utils/index.js";
 import { createHumanEntity } from "../entities/index.js";
 import { createPlane } from "../world/index.js";
-import { SystemManager, InputSystem } from "../systems/index.js";
+import { SystemManager, InputSystem, PhysicsSystem } from "../systems/index.js";
 
 export const createGameScene = (canvas) => {
     const scene = new THREE.Scene();
@@ -25,8 +25,14 @@ export const createGameScene = (canvas) => {
 
     // Setup systems
     const systemManager = new SystemManager(entities);
+
+    // InputSystem - handles all input
     const inputSystem = new InputSystem();
     systemManager.addSystem(inputSystem);
+
+    // PhysicsSystem - handles gravity, collisions, ground detection
+    const physicsSystem = new PhysicsSystem();
+    systemManager.addSystem(physicsSystem);
 
     // Setup action mappings for input
     inputSystem.mapAction('moveForward', 'w');
@@ -47,8 +53,12 @@ export const createGameScene = (canvas) => {
     scene.add(new THREE.AmbientLight(0xffffff, 0.6));
 
     // Setup world
-    const plane = createPlane();
+    const { plane, buildings } = createPlane();
     scene.add(plane);
+
+    // Configure PhysicsSystem with world data
+    physicsSystem.setBuildings(buildings);
+    physicsSystem.setGroundLevel(0.25); // GRID_HEIGHT / 2
 
     // Setup renderer
     const renderer = new THREE.WebGLRenderer({ canvas });

@@ -10,6 +10,7 @@ import {
 
 export const createPlane = () => {
   const overallPlane = new THREE.Group();
+  const buildings = []; // Track building positions for collision detection
 
   const groundGeometry = new THREE.BoxGeometry(GRID_WIDTH, GRID_HEIGHT, GRID_DEPTH);
   const groundMaterial = new THREE.MeshLambertMaterial({ color: 0x00aa00, side: THREE.DoubleSide });
@@ -41,9 +42,19 @@ export const createPlane = () => {
         buildingMesh.position.set(i * GRID_WIDTH, buildingCenterY, j * GRID_DEPTH);
 
         overallPlane.add(buildingMesh);
+
+        // Store building data for collision detection
+        buildings.push({
+          x: i * GRID_WIDTH,
+          y: buildingCenterY,
+          z: j * GRID_DEPTH,
+          width: BUILDING_WIDTH,
+          depth: BUILDING_DEPTH,
+          height: BUILDING_HEIGHTS[idx]
+        });
       }
     }
   }
 
-  return overallPlane;
+  return { plane: overallPlane, buildings };
 };

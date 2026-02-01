@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import { Entity } from "../core/Entity.js";
-import { PositionComponent, MovementComponent, RotationComponent, JumpComponent } from "../components/index.js";
+import { PositionComponent, MovementComponent, RotationComponent, JumpComponent, PhysicsComponent } from "../components/index.js";
 import { GRID_HEIGHT, SPEED, ROTATION_SPEED, JUMP_SPEED } from "../utils/constants.js";
 
 function createHead(headY) {
@@ -125,9 +125,10 @@ export const createHumanEntity = () => {
   
   // Add components (abilities)
   humanEntity.addComponent("position", new PositionComponent(0, initialY, 0));
+  humanEntity.addComponent("physics", new PhysicsComponent(1, true)); // mass=1, useGravity=true
   humanEntity.addComponent("movement", new MovementComponent(SPEED));
   humanEntity.addComponent("rotation", new RotationComponent(Math.PI, ROTATION_SPEED));
-  humanEntity.addComponent("jump", new JumpComponent(JUMP_SPEED, 2));
+  humanEntity.addComponent("jump", new JumpComponent(7)); // jumpForce=7 (upward velocity)
   
   return humanEntity;
 };

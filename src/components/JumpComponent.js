@@ -1,55 +1,48 @@
 /**
  * Jump Component
- * Handles jumping behavior
+ * Handles jumping behavior using PhysicsComponent
+ *
+ * Much simpler now! Physics handles gravity and landing.
+ * This component just applies upward velocity when triggered.
  */
 export class JumpComponent {
-    constructor(jumpSpeed = 0.1, targetHeight = 2) {
-        this.jumpSpeed = jumpSpeed;
-        this.targetHeight = targetHeight;
-        this.isJumping = false;
-        this.isFalling = false;
-        this.startY = 0;
+    constructor(jumpForce = 7) {
+        this.jumpForce = jumpForce; // Upward velocity applied on jump
+        this.canJump = true; // Prevents double-jumping
     }
 
+    /**
+     * Update each frame
+     * Resets jump ability when grounded
+     */
     update(deltaTime, entity) {
-        if (!entity.threeObject) return;
+        const physics = entity.getComponent('physics');
+        if (!physics) return;
 
-        if (this.isJumping) {
-            // Jump speed is in units per second, so multiply by deltaTime
-            entity.threeObject.position.y += this.jumpSpeed * deltaTime * 10; // Scale appropriately
-            
-            const currentHeight = entity.threeObject.position.y - this.startY;
-            if (currentHeight >= this.targetHeight) {
-                this.isJumping = false;
-                this.isFalling = true;
-            }
-        } else if (this.isFalling) {
-            // Fall at same speed
-            entity.threeObject.position.y -= this.jumpSpeed * deltaTime * 10;
-            
-            if (entity.threeObject.position.y <= this.startY) {
-                entity.threeObject.position.y = this.startY;
-                this.isFalling = false;
-            }
+        // Reset jump ability when grounded
+        if (physics.isGrounded) {
+            this.canJump = true;
         }
     }
 
-    jump() {
-        // We need the entity reference, so we'll set it when jump is called
-        // This is called from scene.js which has access to the entity
-    }
-
-    onAdd(entity) {
-        if (entity.threeObject) {
-            this.startY = entity.threeObject.position.y;
-        }
-    }
-
-    // Helper method to trigger jump (called from outside)
+    /**
+     * Trigger a jump
+     * Only works if entity has PhysicsComponent and is grounded
+     */
     triggerJump(entity) {
-        if (!this.isJumping && !this.isFalling && entity.threeObject) {
-            this.isJumping = true;
-            this.startY = entity.threeObject.position.y;
+        const physics = entity.getComponent('physics');
+        if (!physics) {
+            console.warn('JumpComponent requires PhysicsComponent to work');
+            return;
+        }
+
+        // Only jump if grounded and able to jump
+        if (physics.isGrounded && this.canJump) {
+            // Apply upward impulse
+            physics.applyImpulse(0, this.jumpForce, 0);
+            this.canJump = false;
+
+            // Optional: Could add jump sound/animation here
         }
     }
 }

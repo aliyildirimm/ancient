@@ -4,3 +4,4 @@
  */
 export { InputSystem } from './InputSystem.js';
 export { SystemManager } from './SystemManager.js';
+export { PhysicsSystem } from './PhysicsSystem.js';
