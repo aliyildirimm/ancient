@@ -9,19 +9,15 @@ function createHead(headY) {
     const head = new THREE.Mesh(headGeo, headMat);
     head.position.set(0, headY, 0);
 
-    // Eye geometry and material
     const eyeGeo = new THREE.SphereGeometry(0.05);
     const eyeMat = new THREE.MeshLambertMaterial({ color: 0x000000 });
 
-    // Left eye
     const leftEye = new THREE.Mesh(eyeGeo, eyeMat);
-    leftEye.position.set(-0.1, 0.05, 0.27); // small offset from center
+    leftEye.position.set(-0.1, 0.05, 0.27);
 
-    // Right eye
     const rightEye = new THREE.Mesh(eyeGeo, eyeMat);
     rightEye.position.set(0.1, 0.05, 0.27);
 
-    // Attach eyes to the head
     head.add(leftEye);
     head.add(rightEye);
 
@@ -76,9 +72,6 @@ function createLegs(legsY) {
   return group;
 }
 
-/**
- * Creates the Three.js visual representation of a human
- */
 function createHumanMesh() {
   const human = new THREE.Group();
 
@@ -106,46 +99,30 @@ function createHumanMesh() {
   return human;
 }
 
-/**
- * Creates a HumanEntity using the entity system
- * This is the new way - using components for behavior
- */
 export const createHumanEntity = () => {
-  // Create the entity
   const humanEntity = new Entity("Player");
-  
-  // Create the visual representation
   const humanMesh = createHumanMesh();
   humanEntity.setThreeObject(humanMesh);
   
-  // Calculate bottom offset: legs are at -0.5, each leg is 1.0 tall, so bottom is at -1.0 from center
   const bottomOffset = 1.0;
-  
-  // Set initial position so bottom of human is at ground level
-  const groundLevel = GRID_HEIGHT / 2; // 0.25
-  const initialY = groundLevel + bottomOffset; // Position center so bottom is at ground
+  const groundLevel = GRID_HEIGHT / 2;
+  const initialY = groundLevel + bottomOffset;
   humanMesh.position.set(0, initialY, 0);
-  humanMesh.rotation.y = Math.PI; // Face forward (back to camera initially)
+  humanMesh.rotation.y = Math.PI;
   
-  // Add components (abilities)
   humanEntity.addComponent("position", new PositionComponent(0, initialY, 0));
-  const physicsComponent = new PhysicsComponent(1, true); // mass=1, useGravity=true
-  physicsComponent.bottomOffset = bottomOffset; // Set the bottom offset for ground detection
-  // Initialize as grounded since we're starting on the ground
+  const physicsComponent = new PhysicsComponent(1, true);
+  physicsComponent.bottomOffset = bottomOffset;
   physicsComponent.isGrounded = true;
   physicsComponent.groundY = groundLevel;
   humanEntity.addComponent("physics", physicsComponent);
   humanEntity.addComponent("movement", new MovementComponent(SPEED));
   humanEntity.addComponent("rotation", new RotationComponent(Math.PI, ROTATION_SPEED));
-  humanEntity.addComponent("jump", new JumpComponent(7)); // jumpForce=7 (upward velocity)
+  humanEntity.addComponent("jump", new JumpComponent(7));
   
   return humanEntity;
 };
 
-/**
- * Legacy function - kept for backwards compatibility
- * But now it just creates the mesh, not the full entity
- */
 export const createHuman = () => {
   return createHumanMesh();
 };

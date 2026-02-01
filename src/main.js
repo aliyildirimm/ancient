@@ -1,7 +1,3 @@
-/**
- * Main Entry Point
- * Initializes and starts the game
- */
 import { createGameScene } from './game/index.js';
 
 function init() {
@@ -12,11 +8,6 @@ function init() {
 
     // Create game scene
     const game = createGameScene(canvas);
-
-    // Note: Keyboard controls are now handled by InputSystem
-    // Camera switching is handled by InputSystem (keys 1, 2, 3)
-
-    // Start game loop
     game.animate();
 }
 
