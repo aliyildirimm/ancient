@@ -3,7 +3,7 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { createCamera, createLight } from "../utils/index.js";
 import { createHumanEntity } from "../entities/index.js";
 import { createPlane } from "../world/index.js";
-import { KEYS } from "../config/constants.js";
+import { SystemManager, InputSystem } from "../systems/index.js";
 
 export const createGameScene = (canvas) => {
     const scene = new THREE.Scene();
@@ -22,6 +22,24 @@ export const createGameScene = (canvas) => {
 
     // Store all entities (for easy expansion later)
     const entities = [humanEntity];
+
+    // Setup systems
+    const systemManager = new SystemManager(entities);
+    const inputSystem = new InputSystem();
+    systemManager.addSystem(inputSystem);
+
+    // Setup action mappings for input
+    inputSystem.mapAction('moveForward', 'w');
+    inputSystem.mapAction('moveBackward', 's');
+    inputSystem.mapAction('moveLeft', 'a');
+    inputSystem.mapAction('moveRight', 'd');
+    inputSystem.mapAction('jump', ' ');
+
+    // Inject InputSystem into MovementComponent
+    const movement = humanEntity.getComponent('movement');
+    if (movement) {
+        movement.setInputSystem(inputSystem);
+    }
 
     // Setup lighting
     const light = createLight();
@@ -49,18 +67,47 @@ export const createGameScene = (canvas) => {
         const dt = (now - prevTime) / 1000;
         prevTime = now;
 
-        // Update all entities (components handle their own logic)
+        // 1. Pre-update systems (input capture)
+        systemManager.preUpdate(dt);
+
+        // 2. Handle camera switching via InputSystem
+        if (inputSystem.wasKeyJustPressed('1')) {
+            currentCamera = camera1;
+            controls.object = camera1;
+            controls.target.copy(human.position);
+        } else if (inputSystem.wasKeyJustPressed('2')) {
+            currentCamera = camera2;
+            controls.object = camera2;
+            controls.target.copy(human.position);
+        } else if (inputSystem.wasKeyJustPressed('3')) {
+            currentCamera = camera3;
+            controls.object = camera3;
+            controls.target.copy(human.position);
+        }
+
+        // 3. Handle jump via InputSystem
+        if (inputSystem.wasKeyJustPressed(' ')) {
+            const jumpComponent = humanEntity.getComponent('jump');
+            if (jumpComponent) {
+                jumpComponent.triggerJump(humanEntity);
+            }
+        }
+
+        // 4. Update all entities (components handle their own logic)
         entities.forEach(entity => {
             entity.update(dt);
         });
 
+        // 5. Post-update systems (none yet, reserved for future)
+        systemManager.postUpdate(dt);
+
+        // 6. Render
         // Update OrbitControls target to follow human
-        // This allows zoom/pan while still following the player
         controls.target.copy(human.position);
-        
+
         // Update OrbitControls (required for damping and smooth movement)
         controls.update();
-        
+
         renderer.render(scene, currentCamera);
         requestAnimationFrame(run);
     }
@@ -69,54 +116,9 @@ export const createGameScene = (canvas) => {
         requestAnimationFrame(run);
     }
 
-    // Keyboard input handling
-    const handleKeyboardEvents = (event) => {
-        let k = event.key.toLowerCase();
-        
-        if (event.type === "keydown") {
-            if (k in KEYS) KEYS[k] = true;
-        }
-    
-        if (event.type === "keyup") {
-            if (k in KEYS) KEYS[k] = false;
-        }
-
-        // Update movement component with key states
-        const movement = humanEntity.getComponent('movement');
-        if (movement) {
-            movement.setKeyState(k, event.type === "keydown");
-        }
-    }
-
-    // Camera switching
-    const handleCameraChangeEvent = (cameraIndex) => {
-        if (cameraIndex === "1") {
-            currentCamera = camera1;
-            controls.object = camera1;
-            controls.target.copy(human.position);
-        } else if (cameraIndex === "2") {
-            currentCamera = camera2;
-            controls.object = camera2;
-            controls.target.copy(human.position);
-        } else if (cameraIndex === "3") {
-            currentCamera = camera3;
-            controls.object = camera3;
-            controls.target.copy(human.position);
-        }
-    }
-
-    // Jump handling
-    const jump = () => {
-        const jumpComponent = humanEntity.getComponent('jump');
-        if (jumpComponent) {
-            jumpComponent.triggerJump(humanEntity);
-        }
-    }
-
     return {
         animate,
-        handleKeyboardEvents,
-        handleCameraChangeEvent,
-        jump
+        systemManager,
+        inputSystem
     }
 }

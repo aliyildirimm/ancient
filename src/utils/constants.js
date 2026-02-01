@@ -1,4 +1,3 @@
-export const KEYS = { w: false, a: false, s: false, d: false };
 export const SPEED = 2;
 export const JUMP_SPEED = 0.1;
 export const ROTATION_SPEED = 2;

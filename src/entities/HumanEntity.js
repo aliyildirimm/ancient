@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { Entity } from "../core/Entity.js";
 import { PositionComponent, MovementComponent, RotationComponent, JumpComponent } from "../components/index.js";
-import { GRID_HEIGHT, SPEED, ROTATION_SPEED, JUMP_SPEED } from "../config/constants.js";
+import { GRID_HEIGHT, SPEED, ROTATION_SPEED, JUMP_SPEED } from "../utils/constants.js";
 
 function createHead(headY) {
     const headGeo = new THREE.SphereGeometry(0.3);

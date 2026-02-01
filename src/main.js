@@ -13,22 +13,8 @@ function init() {
     // Create game scene
     const game = createGameScene(canvas);
 
-    // Setup keyboard controls
-    window.addEventListener("keydown", game.handleKeyboardEvents);
-    window.addEventListener("keyup", game.handleKeyboardEvents);
-    window.addEventListener("keyup", (event) => {
-        if (event.code === "Space") {
-            game.jump();
-        }
-    });
-
-    // Setup camera buttons
-    document.querySelectorAll("[data-cam]").forEach((btn) => {
-        btn.addEventListener("click", () => {
-            const camIndex = btn.getAttribute("data-cam");
-            game.handleCameraChangeEvent(camIndex);
-        });
-    });
+    // Note: Keyboard controls are now handled by InputSystem
+    // Camera switching is handled by InputSystem (keys 1, 2, 3)
 
     // Start game loop
     game.animate();

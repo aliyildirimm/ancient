@@ -2,7 +2,7 @@
  * Rotation Component
  * Manages smooth entity rotation
  */
-import { ROTATION_SPEED } from "../config/constants.js";
+import { ROTATION_SPEED } from "../utils/constants.js";
 
 export class RotationComponent {
     constructor(rotationY = 0, rotationSpeed = ROTATION_SPEED) {

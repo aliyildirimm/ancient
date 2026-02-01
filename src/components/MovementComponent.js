@@ -2,47 +2,54 @@
  * Movement Component
  * Handles keyboard-based movement
  */
-import { SPEED, TARGET_ROTATIONS } from "../config/constants.js";
+import { SPEED, TARGET_ROTATIONS } from "../utils/constants.js";
 
 export class MovementComponent {
-    constructor(speed = SPEED) {
+    constructor(speed = SPEED, inputSystem = null) {
         this.speed = speed;
-        this.keys = { w: false, a: false, s: false, d: false };
+        this.inputSystem = inputSystem;
+    }
+
+    /**
+     * Set the InputSystem reference
+     * Called after component creation to inject dependencies
+     */
+    setInputSystem(inputSystem) {
+        this.inputSystem = inputSystem;
     }
 
     update(deltaTime, entity) {
-        if (!entity.threeObject) return;
+        if (!entity.threeObject || !this.inputSystem) return;
 
         const position = entity.threeObject.position;
         const rotation = entity.getComponent('rotation');
 
-        // Movement based on keys
-        if (this.keys.w) position.z -= this.speed * deltaTime;
-        if (this.keys.s) position.z += this.speed * deltaTime;
-        if (this.keys.a) position.x -= this.speed * deltaTime;
-        if (this.keys.d) position.x += this.speed * deltaTime;
+        // Read input state from InputSystem
+        const moveForward = this.inputSystem.isKeyPressed('w');
+        const moveBackward = this.inputSystem.isKeyPressed('s');
+        const moveLeft = this.inputSystem.isKeyPressed('a');
+        const moveRight = this.inputSystem.isKeyPressed('d');
+
+        // Apply movement based on input
+        if (moveForward) position.z -= this.speed * deltaTime;
+        if (moveBackward) position.z += this.speed * deltaTime;
+        if (moveLeft) position.x -= this.speed * deltaTime;
+        if (moveRight) position.x += this.speed * deltaTime;
 
         // Update rotation target based on movement direction
         if (rotation) {
-            if (this.keys.w) rotation.setTargetRotation(TARGET_ROTATIONS.w);
-            if (this.keys.s) rotation.setTargetRotation(TARGET_ROTATIONS.s);
-            if (this.keys.a) rotation.setTargetRotation(TARGET_ROTATIONS.a);
-            if (this.keys.d) rotation.setTargetRotation(TARGET_ROTATIONS.d);
+            if (moveForward) rotation.setTargetRotation(TARGET_ROTATIONS.w);
+            if (moveBackward) rotation.setTargetRotation(TARGET_ROTATIONS.s);
+            if (moveLeft) rotation.setTargetRotation(TARGET_ROTATIONS.a);
+            if (moveRight) rotation.setTargetRotation(TARGET_ROTATIONS.d);
         }
 
-        // Update position component if it exists
+        // Sync position component
         const posComponent = entity.getComponent('position');
         if (posComponent) {
             posComponent.x = position.x;
             posComponent.y = position.y;
             posComponent.z = position.z;
-        }
-    }
-
-    setKeyState(key, pressed) {
-        const k = key.toLowerCase();
-        if (k in this.keys) {
-            this.keys[k] = pressed;
         }
     }
 }

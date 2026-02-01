@@ -34,5 +34,5 @@ No build step, test framework, or linter is configured.
 - Components use `Component` suffix, entities use `Entity` suffix in filenames
 - Each `components/` and `entities/` folder has an `index.js` barrel export
 - Imports use relative paths with `.js` extensions (required for native ES modules)
-- Import config from `../config/constants.js` path (aliased in project structure)
+- Constants are imported from `src/utils/constants.js`
 - No npm/node runtime — everything runs in the browser

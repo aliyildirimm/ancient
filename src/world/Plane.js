@@ -6,7 +6,7 @@ import {
   BUILDING_WIDTH,
   BUILDING_DEPTH,
   BUILDING_HEIGHTS
-} from "../config/constants.js";
+} from "../utils/constants.js";
 
 export const createPlane = () => {
   const overallPlane = new THREE.Group();
