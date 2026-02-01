@@ -22,6 +22,9 @@ export class PhysicsComponent {
         // Collision (simple sphere collider)
         this.colliderRadius = 0.5; // Half the character width
 
+        // Bottom offset - distance from entity center to bottom (for ground detection)
+        this.bottomOffset = 1.0; // Default: human legs extend 1.0 units down from center
+
         // Drag/friction
         this.drag = 0.1; // Air resistance
         this.friction = 0.9; // Ground friction (multiplier)

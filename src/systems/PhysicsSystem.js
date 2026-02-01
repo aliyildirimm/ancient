@@ -46,12 +46,15 @@ export class PhysicsSystem {
             pos.y += physics.velocity.y * deltaTime;
             pos.z += physics.velocity.z * deltaTime;
 
-            // 5. Ground detection
+            // 5. Ground detection (use bottom of entity, not center)
             const groundHeight = this.detectGround(pos.x, pos.z);
+            const bottomY = pos.y - physics.bottomOffset;
+            const groundTolerance = 0.01; // Small tolerance for floating point precision
 
-            if (pos.y <= groundHeight) {
+            if (bottomY <= groundHeight + groundTolerance) {
                 // Hit ground - stop falling
-                pos.y = groundHeight;
+                // Set position so bottom is at ground level
+                pos.y = groundHeight + physics.bottomOffset;
                 physics.velocity.y = 0;
                 physics.isGrounded = true;
                 physics.groundY = groundHeight;

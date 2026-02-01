@@ -118,14 +118,23 @@ export const createHumanEntity = () => {
   const humanMesh = createHumanMesh();
   humanEntity.setThreeObject(humanMesh);
   
-  // Set initial position
-  const initialY = GRID_HEIGHT / 2 + 1;
+  // Calculate bottom offset: legs are at -0.5, each leg is 1.0 tall, so bottom is at -1.0 from center
+  const bottomOffset = 1.0;
+  
+  // Set initial position so bottom of human is at ground level
+  const groundLevel = GRID_HEIGHT / 2; // 0.25
+  const initialY = groundLevel + bottomOffset; // Position center so bottom is at ground
   humanMesh.position.set(0, initialY, 0);
   humanMesh.rotation.y = Math.PI; // Face forward (back to camera initially)
   
   // Add components (abilities)
   humanEntity.addComponent("position", new PositionComponent(0, initialY, 0));
-  humanEntity.addComponent("physics", new PhysicsComponent(1, true)); // mass=1, useGravity=true
+  const physicsComponent = new PhysicsComponent(1, true); // mass=1, useGravity=true
+  physicsComponent.bottomOffset = bottomOffset; // Set the bottom offset for ground detection
+  // Initialize as grounded since we're starting on the ground
+  physicsComponent.isGrounded = true;
+  physicsComponent.groundY = groundLevel;
+  humanEntity.addComponent("physics", physicsComponent);
   humanEntity.addComponent("movement", new MovementComponent(SPEED));
   humanEntity.addComponent("rotation", new RotationComponent(Math.PI, ROTATION_SPEED));
   humanEntity.addComponent("jump", new JumpComponent(7)); // jumpForce=7 (upward velocity)
