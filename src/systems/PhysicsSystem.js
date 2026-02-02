@@ -87,7 +87,7 @@ export class PhysicsSystem {
                            z <= building.z + halfDepth;
 
             if (withinX && withinZ) {
-                const buildingTop = building.y + building.height / 2 + this.groundLevel;
+                const buildingTop = building.y + building.height / 2;
                 if (buildingTop > maxHeight) {
                     maxHeight = buildingTop;
                 }
@@ -99,43 +99,68 @@ export class PhysicsSystem {
 
     resolveBuildingCollisions(entity, physics) {
         const pos = entity.threeObject.position;
-        const radius = physics.colliderRadius;
 
-        this.buildings.forEach(building => {
-            const halfWidth = building.width / 2;
-            const halfDepth = building.depth / 2;
+        for (const building of this.buildings) {
+            const charBox = this.getCharacterAABB(pos, physics);
+            const buildingBox = this.getBuildingAABB(building);
 
-            const closestX = Math.max(
-                building.x - halfWidth,
-                Math.min(pos.x, building.x + halfWidth)
-            );
-            const closestZ = Math.max(
-                building.z - halfDepth,
-                Math.min(pos.z, building.z + halfDepth)
-            );
-
-            const distX = pos.x - closestX;
-            const distZ = pos.z - closestZ;
-            const distanceSquared = distX * distX + distZ * distZ;
-
-            if (distanceSquared < radius * radius && distanceSquared > 0) {
-                const distance = Math.sqrt(distanceSquared);
-                const penetration = radius - distance;
-
-                const pushDirX = distX / distance;
-                const pushDirZ = distZ / distance;
-
-                pos.x += pushDirX * penetration;
-                pos.z += pushDirZ * penetration;
-
-                // Project velocity onto collision normal and remove it
-                const dot = physics.velocity.x * pushDirX + physics.velocity.z * pushDirZ;
-                if (dot < 0) {
-                    physics.velocity.x -= pushDirX * dot;
-                    physics.velocity.z -= pushDirZ * dot;
-                }
+            // Check 3D AABB overlap
+            if (!this.aabbOverlap(charBox, buildingBox)) {
+                continue; // No collision
             }
-        });
+
+            // Calculate penetration depths on each axis
+            const penetration = this.getPenetrationDepths(charBox, buildingBox);
+
+            // Find axis with minimum penetration
+            let minAxis = 'y';
+            let minPenetration = penetration.y;
+            if (penetration.x < minPenetration) {
+                minAxis = 'x';
+                minPenetration = penetration.x;
+            }
+            if (penetration.z < minPenetration) {
+                minAxis = 'z';
+            }
+
+            // Resolve collision based on minimum penetration axis
+            if (minAxis === 'y') {
+                // Y-axis collision - platform or ceiling
+                if (charBox.centerY > buildingBox.centerY) {
+                    // Character above building center - PLATFORM collision
+                    if (physics.velocity.y <= 0) {
+                        pos.y = buildingBox.maxY + physics.bottomOffset;
+                        physics.velocity.y = 0;
+                        physics.isGrounded = true;
+                        physics.groundY = buildingBox.maxY;
+                        physics.velocity.x *= physics.friction;
+                        physics.velocity.z *= physics.friction;
+                    }
+                } else {
+                    // Character below building center - CEILING collision
+                    if (physics.velocity.y > 0) {
+                        pos.y = buildingBox.minY + physics.bottomOffset;
+                        physics.velocity.y = 0;
+                    }
+                }
+            } else if (minAxis === 'x') {
+                // X-axis collision - wall (left/right)
+                if (charBox.centerX < buildingBox.centerX) {
+                    pos.x = buildingBox.minX - physics.colliderRadius;
+                } else {
+                    pos.x = buildingBox.maxX + physics.colliderRadius;
+                }
+                physics.velocity.x = 0;
+            } else {
+                // Z-axis collision - wall (front/back)
+                if (charBox.centerZ < buildingBox.centerZ) {
+                    pos.z = buildingBox.minZ - physics.colliderRadius;
+                } else {
+                    pos.z = buildingBox.maxZ + physics.colliderRadius;
+                }
+                physics.velocity.z = 0;
+            }
+        }
     }
 
     setBuildings(buildings) {
@@ -144,5 +169,48 @@ export class PhysicsSystem {
 
     setGroundLevel(level) {
         this.groundLevel = level;
+    }
+
+    getCharacterAABB(pos, physics) {
+        return {
+            minX: pos.x - physics.colliderRadius,
+            maxX: pos.x + physics.colliderRadius,
+            minY: pos.y - physics.bottomOffset,
+            maxY: pos.y - physics.bottomOffset + physics.colliderHeight,
+            minZ: pos.z - physics.colliderRadius,
+            maxZ: pos.z + physics.colliderRadius,
+            centerX: pos.x,
+            centerY: pos.y,
+            centerZ: pos.z
+        };
+    }
+
+    getBuildingAABB(building) {
+        return {
+            minX: building.x - building.width / 2,
+            maxX: building.x + building.width / 2,
+            minY: building.y - building.height / 2,
+            maxY: building.y + building.height / 2,
+            minZ: building.z - building.depth / 2,
+            maxZ: building.z + building.depth / 2,
+            centerX: building.x,
+            centerY: building.y,
+            centerZ: building.z
+        };
+    }
+
+    aabbOverlap(box1, box2) {
+        return (
+            box1.minX < box2.maxX && box1.maxX > box2.minX &&
+            box1.minY < box2.maxY && box1.maxY > box2.minY &&
+            box1.minZ < box2.maxZ && box1.maxZ > box2.minZ
+        );
+    }
+
+    getPenetrationDepths(charBox, buildingBox) {
+        const overlapX = Math.min(charBox.maxX - buildingBox.minX, buildingBox.maxX - charBox.minX);
+        const overlapY = Math.min(charBox.maxY - buildingBox.minY, buildingBox.maxY - charBox.minY);
+        const overlapZ = Math.min(charBox.maxZ - buildingBox.minZ, buildingBox.maxZ - charBox.minZ);
+        return { x: overlapX, y: overlapY, z: overlapZ };
     }
 }

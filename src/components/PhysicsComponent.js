@@ -7,6 +7,7 @@ export class PhysicsComponent {
         this.isGrounded = false;
         this.groundY = 0;
         this.colliderRadius = 0.5;
+        this.colliderHeight = 2.5;
         this.bottomOffset = 1.0;
         this.drag = 0.1;
         this.friction = 0.9;

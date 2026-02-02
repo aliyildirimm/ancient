@@ -113,6 +113,7 @@ export const createHumanEntity = () => {
   humanEntity.addComponent("position", new PositionComponent(0, initialY, 0));
   const physicsComponent = new PhysicsComponent(1, true);
   physicsComponent.bottomOffset = bottomOffset;
+  physicsComponent.colliderHeight = 2.5;
   physicsComponent.isGrounded = true;
   physicsComponent.groundY = groundLevel;
   humanEntity.addComponent("physics", physicsComponent);
