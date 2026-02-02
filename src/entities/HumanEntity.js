@@ -1,6 +1,6 @@
 import * as THREE from "three";
 import { Entity } from "../core/Entity.js";
-import { PositionComponent, MovementComponent, RotationComponent, JumpComponent, PhysicsComponent } from "../components/index.js";
+import { PositionComponent, MovementComponent, RotationComponent, JumpComponent, PhysicsComponent, WalkingAnimationComponent } from "../components/index.js";
 import { GRID_HEIGHT, SPEED, ROTATION_SPEED, JUMP_SPEED, MAX_AIR_JUMPS } from "../utils/constants.js";
 
 function createHead(headY) {
@@ -44,12 +44,16 @@ function createArms(bodyW, armsY, armAngle) {
   const leftArm = new THREE.Mesh(armGeo, armMat);
   leftArm.position.set(-bodyW / 2 - armW / 2, armsY, 0);
   leftArm.rotation.z = -armAngle;
+  leftArm.name = 'leftArm';
 
   const rightArm = new THREE.Mesh(armGeo, armMat.clone());
   rightArm.position.set(bodyW / 2 + armW / 2, armsY, 0);
   rightArm.rotation.z = armAngle;
+  rightArm.name = 'rightArm';
 
   group.add(leftArm, rightArm);
+  group.leftArm = leftArm;
+  group.rightArm = rightArm;
   return group;
 }
 
@@ -64,11 +68,15 @@ function createLegs(legsY) {
 
   const leftLeg = new THREE.Mesh(legGeo, legMat);
   leftLeg.position.set(-0.25, legsY, 0);
+  leftLeg.name = 'leftLeg';
 
   const rightLeg = new THREE.Mesh(legGeo, legMat.clone());
   rightLeg.position.set(0.25, legsY, 0);
+  rightLeg.name = 'rightLeg';
 
   group.add(leftLeg, rightLeg);
+  group.leftLeg = leftLeg;
+  group.rightLeg = rightLeg;
   return group;
 }
 
@@ -96,6 +104,14 @@ function createHumanMesh() {
 
   human.add(body, head, arms, legs);
 
+  // Expose limb references for animation component
+  human.limbs = {
+    leftArm: arms.leftArm,
+    rightArm: arms.rightArm,
+    leftLeg: legs.leftLeg,
+    rightLeg: legs.rightLeg
+  };
+
   return human;
 }
 
@@ -103,13 +119,13 @@ export const createHumanEntity = () => {
   const humanEntity = new Entity("Player");
   const humanMesh = createHumanMesh();
   humanEntity.setThreeObject(humanMesh);
-  
+
   const bottomOffset = 1.0;
   const groundLevel = GRID_HEIGHT / 2;
   const initialY = groundLevel + bottomOffset;
   humanMesh.position.set(0, initialY, 0);
   humanMesh.rotation.y = Math.PI;
-  
+
   humanEntity.addComponent("position", new PositionComponent(0, initialY, 0));
   const physicsComponent = new PhysicsComponent(1, true);
   physicsComponent.bottomOffset = bottomOffset;
@@ -120,7 +136,17 @@ export const createHumanEntity = () => {
   humanEntity.addComponent("movement", new MovementComponent(SPEED));
   humanEntity.addComponent("rotation", new RotationComponent(Math.PI, ROTATION_SPEED));
   humanEntity.addComponent("jump", new JumpComponent(7, MAX_AIR_JUMPS));
-  
+
+  // Add walking animation component and set limb references
+  const walkingAnimation = new WalkingAnimationComponent();
+  walkingAnimation.setLimbs(
+    humanMesh.limbs.leftArm,
+    humanMesh.limbs.rightArm,
+    humanMesh.limbs.leftLeg,
+    humanMesh.limbs.rightLeg
+  );
+  humanEntity.addComponent("walkingAnimation", walkingAnimation);
+
   return humanEntity;
 };
 
