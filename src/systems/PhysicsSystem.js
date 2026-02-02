@@ -28,22 +28,7 @@ export class PhysicsSystem {
             pos.y += physics.velocity.y * deltaTime;
             pos.z += physics.velocity.z * deltaTime;
 
-            // Ground detection uses bottom of entity, not center
-            const groundHeight = this.detectGround(pos.x, pos.z);
-            const bottomY = pos.y - physics.bottomOffset;
-            const groundTolerance = 0.01;
-
-            if (bottomY <= groundHeight + groundTolerance) {
-                pos.y = groundHeight + physics.bottomOffset;
-                physics.velocity.y = 0;
-                physics.isGrounded = true;
-                physics.groundY = groundHeight;
-                physics.velocity.x *= physics.friction;
-                physics.velocity.z *= physics.friction;
-            } else {
-                physics.isGrounded = false;
-            }
-
+            this.checkGroundCollision(entity, physics);
             this.resolveBuildingCollisions(entity, physics);
 
             physics.acceleration.x = 0;
@@ -57,6 +42,36 @@ export class PhysicsSystem {
                 posComponent.z = pos.z;
             }
         });
+    }
+
+    postUpdate(deltaTime, entities) {
+        // Re-check ground collision after entity movements (e.g., from MovementComponent)
+        entities.forEach(entity => {
+            const physics = entity.getComponent('physics');
+            if (!physics || !entity.threeObject) return;
+
+            this.checkGroundCollision(entity, physics);
+        });
+    }
+
+    checkGroundCollision(entity, physics) {
+        const pos = entity.threeObject.position;
+
+        // Ground detection uses bottom of entity, not center
+        const groundHeight = this.detectGround(pos.x, pos.z);
+        const bottomY = pos.y - physics.bottomOffset;
+        const groundTolerance = 0.01;
+
+        if (bottomY <= groundHeight + groundTolerance) {
+            pos.y = groundHeight + physics.bottomOffset;
+            physics.velocity.y = 0;
+            physics.isGrounded = true;
+            physics.groundY = groundHeight;
+            physics.velocity.x *= physics.friction;
+            physics.velocity.z *= physics.friction;
+        } else {
+            physics.isGrounded = false;
+        }
     }
 
     detectGround(x, z) {

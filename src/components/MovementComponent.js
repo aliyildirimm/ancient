@@ -30,11 +30,37 @@ export class MovementComponent {
         const moveLeft = this.inputSystem.isKeyPressed('a');
         const moveRight = this.inputSystem.isKeyPressed('d');
 
-        // Apply movement based on input
-        if (moveForward) position.z -= this.speed * deltaTime;
-        if (moveBackward) position.z += this.speed * deltaTime;
-        if (moveLeft) position.x -= this.speed * deltaTime;
-        if (moveRight) position.x += this.speed * deltaTime;
+        // Calculate movement direction in local space (relative to character facing)
+        // In local space: +Z is forward, +X is left, -X is right
+        let moveX = 0;
+        let moveZ = 0;
+
+        if (moveForward) {
+            moveZ += this.speed * deltaTime;
+        }
+        if (moveBackward) {
+            moveZ -= this.speed * deltaTime;
+        }
+        if (moveLeft) {
+            moveX += this.speed * deltaTime;
+        }
+        if (moveRight) {
+            moveX -= this.speed * deltaTime;
+        }
+
+        // Apply rotation to movement vector
+        if (moveX !== 0 || moveZ !== 0) {
+            const entityRotation = rotation ? rotation.getRotation() : 0;
+            const cos = Math.cos(entityRotation);
+            const sin = Math.sin(entityRotation);
+
+            // Rotate movement vector by entity's Y rotation
+            const rotatedX = moveX * cos - moveZ * sin;
+            const rotatedZ = moveX * sin + moveZ * cos;
+
+            position.x += rotatedX;
+            position.z += rotatedZ;
+        }
 
         // Update rotation target based on movement direction
         if (rotation) {

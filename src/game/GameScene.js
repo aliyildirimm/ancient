@@ -13,6 +13,7 @@ export const createGameScene = (canvas) => {
     const camera3 = createCamera(15, 15, 15);
     scene.add(camera1, camera2, camera3);
     let currentCamera = camera2;
+    let currentCameraIndex = 1; // 0=left, 1=back, 2=right
 
     const humanEntity = createHumanEntity();
     const human = humanEntity.getThreeObject();
@@ -61,20 +62,18 @@ export const createGameScene = (canvas) => {
         const dt = (now - prevTime) / 1000;
         prevTime = now;
 
-        systemManager.preUpdate(dt);
-
         if (inputSystem.wasKeyJustPressed('1')) {
+            currentCameraIndex = 0;
             currentCamera = camera1;
             controls.object = camera1;
-            controls.target.copy(human.position);
         } else if (inputSystem.wasKeyJustPressed('2')) {
+            currentCameraIndex = 1;
             currentCamera = camera2;
             controls.object = camera2;
-            controls.target.copy(human.position);
         } else if (inputSystem.wasKeyJustPressed('3')) {
+            currentCameraIndex = 2;
             currentCamera = camera3;
             controls.object = camera3;
-            controls.target.copy(human.position);
         }
 
         if (inputSystem.wasKeyJustPressed(' ')) {
@@ -84,11 +83,47 @@ export const createGameScene = (canvas) => {
             }
         }
 
+        systemManager.preUpdate(dt);
+
         entities.forEach(entity => {
             entity.update(dt);
         });
 
         systemManager.postUpdate(dt);
+
+        // Update camera position to follow character rotation
+        const rotation = humanEntity.getComponent('rotation');
+        if (rotation) {
+            const charRotation = rotation.getRotation();
+            const cameraDistance = 15;
+            const cameraHeight = 15;
+
+            // Define camera positions in character's local space
+            // Character faces +Z in local space, so:
+            // - Behind = -Z (negative Z direction in local space)
+            // - Left = -X
+            // - Right = +X
+            const localCameraPositions = [
+                { x: -15, z: -15 },  // Camera 1: Left-behind
+                { x: 0, z: -15 },    // Camera 2: Directly behind
+                { x: 15, z: -15 }    // Camera 3: Right-behind
+            ];
+
+            const cameras = [camera1, camera2, camera3];
+            cameras.forEach((cam, idx) => {
+                const localPos = localCameraPositions[idx];
+
+                // Transform from local space to world space using character rotation
+                const cos = Math.cos(charRotation);
+                const sin = Math.sin(charRotation);
+
+                const worldX = human.position.x + (localPos.x * cos - localPos.z * sin);
+                const worldZ = human.position.z + (localPos.x * sin + localPos.z * cos);
+
+                cam.position.set(worldX, cameraHeight, worldZ);
+                cam.lookAt(human.position);
+            });
+        }
 
         controls.target.copy(human.position);
         controls.update();
