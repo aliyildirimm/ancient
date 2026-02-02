@@ -1,6 +1,7 @@
 export const SPEED = 2;
 export const JUMP_SPEED = 0.1;
 export const ROTATION_SPEED = 2;
+export const MAX_AIR_JUMPS = 3;
 
 export const GRID_WIDTH = 2;
 export const GRID_DEPTH = 2;

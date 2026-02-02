@@ -1,16 +1,22 @@
 export class JumpComponent {
-    constructor(jumpForce = 7) {
+    constructor(jumpForce = 7, maxAirJumps = 3) {
         this.jumpForce = jumpForce;
-        this.canJump = true;
+        this.maxAirJumps = maxAirJumps;
+        this.remainingAirJumps = maxAirJumps;  // Start with full air jumps
+        this.wasGrounded = true;               // Track previous grounded state
     }
 
     update(deltaTime, entity) {
         const physics = entity.getComponent('physics');
         if (!physics) return;
 
-        if (physics.isGrounded) {
-            this.canJump = true;
+        // Detect landing: transition from air to ground
+        if (physics.isGrounded && !this.wasGrounded) {
+            this.remainingAirJumps = this.maxAirJumps;  // Restore all air jumps
         }
+
+        // Update state for next frame
+        this.wasGrounded = physics.isGrounded;
     }
 
     triggerJump(entity) {
@@ -20,9 +26,15 @@ export class JumpComponent {
             return;
         }
 
-        if (physics.isGrounded && this.canJump) {
+        // Ground jump: free, always available when grounded
+        if (physics.isGrounded) {
             physics.applyImpulse(0, this.jumpForce, 0);
-            this.canJump = false;
+            // Don't consume air jump
+        }
+        // Air jump: requires remaining air jumps
+        else if (this.remainingAirJumps > 0) {
+            physics.applyImpulse(0, this.jumpForce, 0);
+            this.remainingAirJumps--;
         }
     }
 }

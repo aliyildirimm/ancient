@@ -1,7 +1,7 @@
 import * as THREE from "three";
 import { Entity } from "../core/Entity.js";
 import { PositionComponent, MovementComponent, RotationComponent, JumpComponent, PhysicsComponent } from "../components/index.js";
-import { GRID_HEIGHT, SPEED, ROTATION_SPEED, JUMP_SPEED } from "../utils/constants.js";
+import { GRID_HEIGHT, SPEED, ROTATION_SPEED, JUMP_SPEED, MAX_AIR_JUMPS } from "../utils/constants.js";
 
 function createHead(headY) {
     const headGeo = new THREE.SphereGeometry(0.3);
@@ -118,7 +118,7 @@ export const createHumanEntity = () => {
   humanEntity.addComponent("physics", physicsComponent);
   humanEntity.addComponent("movement", new MovementComponent(SPEED));
   humanEntity.addComponent("rotation", new RotationComponent(Math.PI, ROTATION_SPEED));
-  humanEntity.addComponent("jump", new JumpComponent(7));
+  humanEntity.addComponent("jump", new JumpComponent(7, MAX_AIR_JUMPS));
   
   return humanEntity;
 };
