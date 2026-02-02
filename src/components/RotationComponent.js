@@ -45,6 +45,18 @@ export class RotationComponent {
         this.targetRotation = rotationY;
     }
 
+    /**
+     * Directly rotate by an amount (immediate, not smoothed)
+     * Used for continuous rotation controls
+     */
+    rotate(amount, entity) {
+        this.rotationY += amount;
+        this.targetRotation = this.rotationY;
+        if (entity.threeObject) {
+            entity.threeObject.rotation.y = this.rotationY;
+        }
+    }
+
     getRotation() {
         return this.rotationY;
     }

@@ -1,8 +1,12 @@
 /**
  * Movement Component
- * Handles keyboard-based movement
+ * Handles keyboard-based tank controls
+ * - W: Move forward in current facing direction
+ * - S: Turn 180° and move forward
+ * - A: Rotate left (no movement)
+ * - D: Rotate right (no movement)
  */
-import { SPEED, TARGET_ROTATIONS } from "../utils/constants.js";
+import { SPEED, ROTATION_SPEED } from "../utils/constants.js";
 
 export class MovementComponent {
     constructor(speed = SPEED, inputSystem = null) {
@@ -27,47 +31,44 @@ export class MovementComponent {
         // Read input state from InputSystem
         const moveForward = this.inputSystem.isKeyPressed('w');
         const moveBackward = this.inputSystem.isKeyPressed('s');
-        const moveLeft = this.inputSystem.isKeyPressed('a');
-        const moveRight = this.inputSystem.isKeyPressed('d');
+        const turnLeft = this.inputSystem.isKeyPressed('a');
+        const turnRight = this.inputSystem.isKeyPressed('d');
 
-        // Calculate movement direction in local space (relative to character facing)
-        // In local space: +Z is forward, +X is left, -X is right
-        let moveX = 0;
-        let moveZ = 0;
+        // Handle rotation (A/D for turning, S for 180° flip)
+        if (rotation) {
+            if (turnLeft) {
+                // Rotate counter-clockwise (left) - immediate rotation
+                rotation.rotate(ROTATION_SPEED * deltaTime, entity);
+            }
+            if (turnRight) {
+                // Rotate clockwise (right) - immediate rotation
+                rotation.rotate(-ROTATION_SPEED * deltaTime, entity);
+            }
+            if (moveBackward && this.inputSystem.wasKeyJustPressed('s')) {
+                // Turn 180° when S is first pressed
+                const currentRotation = rotation.getRotation();
+                rotation.setTargetRotation(currentRotation + Math.PI);
+            }
+        }
 
+        // Handle forward movement (W or S moves forward in current facing direction)
+        let moveDistance = 0;
         if (moveForward) {
-            moveZ += this.speed * deltaTime;
+            moveDistance = this.speed * deltaTime;
         }
         if (moveBackward) {
-            moveZ -= this.speed * deltaTime;
-        }
-        if (moveLeft) {
-            moveX += this.speed * deltaTime;
-        }
-        if (moveRight) {
-            moveX -= this.speed * deltaTime;
+            moveDistance = this.speed * deltaTime;
         }
 
-        // Apply rotation to movement vector
-        if (moveX !== 0 || moveZ !== 0) {
-            const entityRotation = rotation ? rotation.getRotation() : 0;
-            const cos = Math.cos(entityRotation);
+        // Apply movement in character's facing direction
+        if (moveDistance !== 0 && rotation) {
+            const entityRotation = rotation.getRotation();
             const sin = Math.sin(entityRotation);
+            const cos = Math.cos(entityRotation);
 
-            // Rotate movement vector by entity's Y rotation
-            const rotatedX = moveX * cos - moveZ * sin;
-            const rotatedZ = moveX * sin + moveZ * cos;
-
-            position.x += rotatedX;
-            position.z += rotatedZ;
-        }
-
-        // Update rotation target based on movement direction
-        if (rotation) {
-            if (moveForward) rotation.setTargetRotation(TARGET_ROTATIONS.w);
-            if (moveBackward) rotation.setTargetRotation(TARGET_ROTATIONS.s);
-            if (moveLeft) rotation.setTargetRotation(TARGET_ROTATIONS.a);
-            if (moveRight) rotation.setTargetRotation(TARGET_ROTATIONS.d);
+            // Move forward in current facing direction
+            position.x += moveDistance * sin;
+            position.z += moveDistance * cos;
         }
 
         // Sync position component
