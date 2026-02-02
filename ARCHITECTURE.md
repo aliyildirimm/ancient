@@ -11,18 +11,27 @@ src/
 ├── core/                          # Core systems
 │   └── Entity.js                 # Base Entity class
 │
-├── components/                    # Reusable components
+├── components/                    # Reusable components (pure state holders)
 │   ├── PositionComponent.js       # Position tracking
 │   ├── MovementComponent.js       # WASD keyboard movement
 │   ├── RotationComponent.js       # Smooth rotation
 │   ├── JumpComponent.js           # Jump behavior
 │   ├── PhysicsComponent.js        # Physics state (velocity, acceleration, gravity)
-│   ├── AnimationController.js     # Model animation state machine (NEW)
 │   └── index.js                   # Component exports
 │
-├── entities/                      # Game entities
-│   ├── HumanEntity.js            # Player entity (GLTF model with animations)
-│   └── index.js                   # Entity exports
+├── controllers/                   # Component controllers (meta-managers)
+│   ├── AnimationController.js     # Model animation state machine
+│   └── index.js                   # Controller exports
+│
+├── entities/                      # Game entities (organized by type)
+│   ├── index.js                   # Main entity exports
+│   ├── players/                   # Player entities
+│   │   ├── HumanEntity.js        # Player entity (GLTF model with animations)
+│   │   └── index.js               # Player entity exports
+│   ├── npcs/                      # NPC entities (future)
+│   │   └── index.js               # NPC entity exports (placeholder)
+│   └── world/                     # World entities (future)
+│       └── index.js               # World entity exports (placeholder)
 │
 ├── systems/                       # Game systems
 │   ├── InputSystem.js            # Keyboard input handling
@@ -38,11 +47,16 @@ src/
 │   ├── Plane.js                  # Procedural world generation
 │   └── index.js                   # World exports
 │
-├── utils/
-│   ├── loaders/
-│   │   └── ModelLoader.js        # GLTF model & animation loading
+├── loaders/                       # Resource loaders
+│   ├── ModelLoader.js            # GLTF model & animation loading
+│   └── index.js                   # Loader exports
+│
+├── factories/                     # Factory functions
 │   ├── camera.js                 # Camera setup
 │   ├── light.js                  # Lighting setup
+│   └── index.js                   # Factory exports
+│
+├── utils/
 │   ├── constants.js              # Game constants
 │   └── index.js                   # Utils exports
 │
@@ -89,11 +103,14 @@ Each component is a separate file for better organization:
 - Tracks grounded state and ground level
 - Used by PhysicsSystem for gravity and collision resolution
 
-**AnimationController** (`components/AnimationController.js`) **NEW**
+### 2b. Controllers (`controllers/`)
+
+**AnimationController** (`controllers/AnimationController.js`)
 - Manages THREE.AnimationMixer for GLTF model animations
 - State machine: idle ↔ walk ↔ jump based on input and physics
 - Automatically plays/stops animations based on game state
 - Handles animation transitions smoothly
+- Note: Controllers are distinct from components—they orchestrate other systems
 
 **Component Index** (`components/index.js`)
 - Exports all components for easy importing
@@ -101,15 +118,24 @@ Each component is a separate file for better organization:
 
 ### 3. Entities (`entities/`)
 
-**HumanEntity** (`entities/HumanEntity.js`) **UPDATED**
-- Creates the player entity from GLTF model (`models/humanoid.glb`)
-- Automatically loads 21 built-in animations
-- Scales model 1.5x and positions above ground
-- Composes: PositionComponent, MovementComponent, RotationComponent, JumpComponent, PhysicsComponent, AnimationController
-- Exports `createHumanEntity(modelUrl)` async function
+Entities are organized hierarchically by type for scalability:
+
+**Player Entities** (`entities/players/`)
+- **HumanEntity** (`entities/players/HumanEntity.js`)
+  - Creates the player entity from GLTF model (`models/humanoid.glb`)
+  - Automatically loads 21 built-in animations
+  - Scales model 1.5x and positions above ground
+  - Composes: PositionComponent, MovementComponent, RotationComponent, JumpComponent, PhysicsComponent, AnimationController
+  - Exports `createHumanEntity(modelUrl)` async function
+
+**NPC Entities** (`entities/npcs/`) (Future)
+- Placeholder for NPC entities (enemies, allies, etc.)
+
+**World Entities** (`entities/world/`) (Future)
+- Placeholder for world objects (buildings, collectibles, etc.)
 
 **Entity Index** (`entities/index.js`)
-- Exports all entity creation functions
+- Re-exports main entities for convenient importing
 - Use: `import { createHumanEntity } from './entities/index.js'`
 
 ### 4. Systems (`systems/`)
@@ -259,16 +285,47 @@ import { MovementComponent } from './components/MovementComponent.js';
 import { PositionComponent, MovementComponent, RotationComponent } from './components/index.js';
 ```
 
+### Importing Controllers
+```javascript
+// Import specific controller
+import { AnimationController } from './controllers/index.js';
+```
+
 ### Importing Entities
 ```javascript
-// Import entity creation function
+// Import entity creation function from main barrel export
 import { createHumanEntity } from './entities/index.js';
+
+// Or import directly from subfolder
+import { createHumanEntity } from './entities/players/HumanEntity.js';
+```
+
+### Importing Loaders
+```javascript
+// Import loader from new loaders folder
+import { loadHumanoidModelWithAnimations } from './loaders/ModelLoader.js';
+// Or via barrel export
+import { loadHumanoidModelWithAnimations } from './loaders/index.js';
+```
+
+### Importing Factories
+```javascript
+// Import factories from new factories folder
+import { createCamera, createLight } from './factories/index.js';
 ```
 
 ### Importing Core
 ```javascript
 // Import base Entity class
 import { Entity } from './core/Entity.js';
+```
+
+### Importing Constants
+```javascript
+// Import constants from utils
+import { SPEED, JUMP_SPEED, ROTATION_SPEED } from './utils/constants.js';
+// Or via barrel export
+import { SPEED, JUMP_SPEED } from './utils/index.js';
 ```
 
 ## Component Lifecycle

@@ -1,8 +1,9 @@
 import * as THREE from "three";
-import { Entity } from "../core/Entity.js";
-import { PositionComponent, MovementComponent, RotationComponent, JumpComponent, PhysicsComponent, AnimationController } from "../components/index.js";
-import { GRID_HEIGHT, SPEED, ROTATION_SPEED, JUMP_SPEED, MAX_AIR_JUMPS } from "../utils/constants.js";
-import { loadHumanoidModelWithAnimations } from "../utils/loaders/ModelLoader.js";
+import { Entity } from "../../core/Entity.js";
+import { PositionComponent, MovementComponent, RotationComponent, JumpComponent, PhysicsComponent } from "../../components/index.js";
+import { AnimationController } from "../../controllers/index.js";
+import { GRID_HEIGHT, SPEED, ROTATION_SPEED, JUMP_SPEED, MAX_AIR_JUMPS } from "../../utils/constants.js";
+import { loadHumanoidModelWithAnimations } from "../../loaders/ModelLoader.js";
 
 /**
  * Create a human entity from a loaded GLTF model

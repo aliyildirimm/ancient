@@ -1,6 +1,6 @@
 import * as THREE from "https://threejs.org/build/three.module.js";
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { createCamera, createLight } from "../utils/index.js";
+import { createCamera, createLight } from "../factories/index.js";
 import { createHumanEntity } from "../entities/index.js";
 import { createPlane } from "../world/index.js";
 import { SystemManager, InputSystem, PhysicsSystem } from "../systems/index.js";

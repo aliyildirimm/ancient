@@ -40,30 +40,60 @@ This game uses an **Entity-Component System** for clean, extensible code:
 ancient/
 ├── src/                      # Game source code
 │   ├── index.html            # Entry point
-│   ├── scene.js              # Main game loop
-│   ├── constants.js          # Game constants
-│   ├── utils.js              # Utilities (camera, lights)
-│   ├── plane.js              # World generation
+│   ├── main.js               # Application initialization
 │   ├── core/                 # Core systems
 │   │   └── Entity.js         # Base Entity class
-│   ├── components/           # Reusable components
+│   ├── components/           # Reusable components (state holders)
 │   │   ├── PositionComponent.js
 │   │   ├── MovementComponent.js
 │   │   ├── RotationComponent.js
 │   │   ├── JumpComponent.js
+│   │   ├── PhysicsComponent.js
 │   │   └── index.js          # Component exports
-│   └── entities/             # Game entities
-│       ├── HumanEntity.js    # Player entity
-│       └── index.js           # Entity exports
+│   ├── controllers/          # Component controllers (managers)
+│   │   ├── AnimationController.js
+│   │   └── index.js          # Controller exports
+│   ├── entities/             # Game entities (organized by type)
+│   │   ├── players/          # Player entities
+│   │   │   ├── HumanEntity.js
+│   │   │   └── index.js
+│   │   ├── npcs/             # NPC entities (future)
+│   │   ├── world/            # World entities (future)
+│   │   └── index.js          # Main entity exports
+│   ├── systems/              # Game systems
+│   │   ├── SystemManager.js
+│   │   ├── InputSystem.js
+│   │   ├── PhysicsSystem.js
+│   │   └── index.js          # System exports
+│   ├── game/                 # Game scene
+│   │   ├── GameScene.js      # Main game loop
+│   │   └── index.js
+│   ├── world/                # World generation
+│   │   ├── Plane.js          # Procedural world
+│   │   └── index.js
+│   ├── loaders/              # Resource loaders
+│   │   ├── ModelLoader.js    # GLTF model loading
+│   │   └── index.js
+│   ├── factories/            # Factory functions
+│   │   ├── camera.js         # Camera setup
+│   │   ├── light.js          # Lighting setup
+│   │   └── index.js
+│   └── utils/                # Utilities
+│       ├── constants.js      # Game configuration
+│       └── index.js          # Utils exports
+├── models/                   # 3D models
+│   └── humanoid.glb          # Player model with animations
 ├── status_imgs/              # Status images
-└── README.md                  # This file
+└── README.md                 # This file
 ```
 
 ## Future Expansion
 
 The entity system makes it easy to add:
-- Enemies with AI
-- Collectible items
-- Multiple players
-- Projectiles
-- Any game object by mixing components!
+- **Enemies with AI** → Add to `entities/npcs/`
+- **Collectible items** → Add to `entities/world/`
+- **Multiple players** → Add to `entities/players/`
+- **Projectiles** → Add to `entities/world/`
+- **Any game object** by mixing components and organizing by type!
+
+The hierarchical folder structure (`players/`, `npcs/`, `world/`) scales naturally as the game grows.
