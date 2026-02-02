@@ -5,13 +5,13 @@ import { createHumanEntity } from "../entities/index.js";
 import { createPlane } from "../world/index.js";
 import { SystemManager, InputSystem, PhysicsSystem } from "../systems/index.js";
 
-export const createGameScene = (canvas) => {
+export const createGameScene = async (canvas, modelUrl) => {
     const scene = new THREE.Scene();
 
     const camera = createCamera(0, 15, 15);
     scene.add(camera);
 
-    const humanEntity = createHumanEntity();
+    const humanEntity = await createHumanEntity(modelUrl);
     const human = humanEntity.getThreeObject();
     scene.add(human);
 
@@ -45,6 +45,8 @@ export const createGameScene = (canvas) => {
     controls.enableDamping = true;
     controls.dampingFactor = 0.05;
     controls.target.copy(human.position);
+    // Disable keyboard input so WASD controls go to character movement, not camera
+    // Just don't call listenToKeyEvents() - it's disabled by default
     camera.lookAt(human.position);
 
     let prevTime = performance.now();

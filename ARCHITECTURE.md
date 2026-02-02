@@ -8,25 +8,46 @@ The codebase uses an **Entity-Component System** pattern for clean, extensible c
 
 ```
 src/
-├── core/                      # Core systems
-│   └── Entity.js             # Base Entity class
+├── core/                          # Core systems
+│   └── Entity.js                 # Base Entity class
 │
-├── components/                # Reusable components
-│   ├── PositionComponent.js   # Position tracking
-│   ├── MovementComponent.js   # Keyboard movement
-│   ├── RotationComponent.js  # Smooth rotation
-│   ├── JumpComponent.js      # Jump behavior
-│   └── index.js              # Component exports
+├── components/                    # Reusable components
+│   ├── PositionComponent.js       # Position tracking
+│   ├── MovementComponent.js       # WASD keyboard movement
+│   ├── RotationComponent.js       # Smooth rotation
+│   ├── JumpComponent.js           # Jump behavior
+│   ├── PhysicsComponent.js        # Physics state (velocity, acceleration, gravity)
+│   ├── AnimationController.js     # Model animation state machine (NEW)
+│   └── index.js                   # Component exports
 │
-├── entities/                  # Game entities
-│   ├── HumanEntity.js        # Player entity
-│   └── index.js              # Entity exports
+├── entities/                      # Game entities
+│   ├── HumanEntity.js            # Player entity (GLTF model with animations)
+│   └── index.js                   # Entity exports
 │
-├── index.html                 # Entry point
-├── scene.js                   # Main game loop
-├── constants.js               # Game constants
-├── utils.js                   # Utilities (camera, lights)
-└── plane.js                   # World generation
+├── systems/                       # Game systems
+│   ├── InputSystem.js            # Keyboard input handling
+│   ├── PhysicsSystem.js          # Gravity, collision, ground detection
+│   ├── SystemManager.js          # System orchestration
+│   └── index.js                   # System exports
+│
+├── game/
+│   ├── GameScene.js              # Main game loop and scene setup
+│   └── index.js                   # Game exports
+│
+├── world/
+│   ├── Plane.js                  # Procedural world generation
+│   └── index.js                   # World exports
+│
+├── utils/
+│   ├── loaders/
+│   │   └── ModelLoader.js        # GLTF model & animation loading
+│   ├── camera.js                 # Camera setup
+│   ├── light.js                  # Lighting setup
+│   ├── constants.js              # Game constants
+│   └── index.js                   # Utils exports
+│
+├── index.html                     # Entry point
+└── main.js                        # Application initialization
 ```
 
 ## How It Works
@@ -62,7 +83,17 @@ Each component is a separate file for better organization:
 **JumpComponent** (`components/JumpComponent.js`)
 - Handles jump physics
 - Integrates with main game loop (no recursive requestAnimationFrame!)
-- Fixed the old jump bug
+
+**PhysicsComponent** (`components/PhysicsComponent.js`)
+- Stores physics state: velocity, acceleration, mass
+- Tracks grounded state and ground level
+- Used by PhysicsSystem for gravity and collision resolution
+
+**AnimationController** (`components/AnimationController.js`) **NEW**
+- Manages THREE.AnimationMixer for GLTF model animations
+- State machine: idle ↔ walk ↔ jump based on input and physics
+- Automatically plays/stops animations based on game state
+- Handles animation transitions smoothly
 
 **Component Index** (`components/index.js`)
 - Exports all components for easy importing
@@ -70,29 +101,53 @@ Each component is a separate file for better organization:
 
 ### 3. Entities (`entities/`)
 
-**HumanEntity** (`entities/HumanEntity.js`)
-- Creates the player entity
-- Combines visual mesh with components
-- Exports `createHumanEntity()` function
+**HumanEntity** (`entities/HumanEntity.js`) **UPDATED**
+- Creates the player entity from GLTF model (`models/humanoid.glb`)
+- Automatically loads 21 built-in animations
+- Scales model 1.5x and positions above ground
+- Composes: PositionComponent, MovementComponent, RotationComponent, JumpComponent, PhysicsComponent, AnimationController
+- Exports `createHumanEntity(modelUrl)` async function
 
 **Entity Index** (`entities/index.js`)
 - Exports all entity creation functions
 - Use: `import { createHumanEntity } from './entities/index.js'`
 
-### 4. Scene Management (`scene.js`)
+### 4. Systems (`systems/`)
+
+**SystemManager** (`systems/SystemManager.js`)
+- Orchestrates game systems
+- Calls `preUpdate()` phase (input capture)
+- Calls `postUpdate()` phase (collision resolution)
+- Manages system lifecycle (init/destroy)
+
+**InputSystem** (`systems/InputSystem.js`)
+- Centralizes keyboard input (keydown/keyup)
+- Tracks current key state and "just pressed" events
+- Clears frame-specific state each preUpdate
+
+**PhysicsSystem** (`systems/PhysicsSystem.js`)
+- Applies gravity and velocity
+- Detects ground collisions (raycasting by height)
+- Resolves building collisions (3D AABB)
+- Updates entity positions based on physics
+
+### 5. Scene Management (`game/GameScene.js`) **UPDATED**
 
 **Game Loop**:
 - Creates entities using entity system
-- Stores all entities in an array
-- Updates all entities each frame: `entities.forEach(e => e.update(dt))`
+- Initializes systems (InputSystem, PhysicsSystem)
+- Updates all systems each frame:
+  - `systemManager.preUpdate(dt)` - capture input
+  - `entities.forEach(e => e.update(dt))` - update entity components
+  - `systemManager.postUpdate(dt)` - resolve collisions
 - Components handle their own logic automatically
-- OrbitControls for camera (zoom, rotate, pan)
 
 **Key Features**:
 - Entity-based updates (no direct manipulation)
-- Camera follows player but allows user control
-- Keyboard input routed to components
-- Multiple camera angles support
+- Camera dynamically follows character (positioned behind at distance)
+- Dynamic camera positioning based on character rotation
+- Keyboard input via InputSystem
+- Physics via PhysicsSystem
 
 ## Key Benefits
 
@@ -242,16 +297,32 @@ export class MyComponent {
 }
 ```
 
+## Current Status
+
+✅ **Completed**:
+- Player movement (WASD tank controls)
+- Model-based animations (idle, walk, jump with automatic transitions)
+- Physics system (gravity, ground detection, building collision)
+- Procedural world generation
+- Dynamic camera following
+- Input system with centralized keyboard handling
+
+⚠️ **Known Issues**:
+- Texture blob URLs fail to load (model renders untextured)
+- Only one player entity supported
+
 ## Next Steps
 
-Now you can easily:
+Easy additions using existing ECS system:
 1. **Add enemies** - Create entities with AI components
 2. **Add collectibles** - Entities with collectible components
 3. **Add projectiles** - Entities with velocity components
-4. **Add NPCs** - Entities with different movement/ai components
-5. **Add systems** - Create systems folder for game systems (collision, physics, etc.)
+4. **Add NPCs** - Entities with different movement/animation components
+5. **Fix texture loading** - Improve model texture blob URL handling or use alternative approach
+6. **Add UI** - Create HUD components for health, score, etc.
+7. **Add sound** - Audio system for footsteps, jumping, etc.
 
-All without duplicating movement, rotation, or position code!
+All without duplicating movement, rotation, animation, or physics code!
 
 ## Best Practices
 
