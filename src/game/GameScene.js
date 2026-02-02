@@ -27,12 +27,6 @@ export const createGameScene = (canvas) => {
     systemManager.addSystem(inputSystem);
     systemManager.addSystem(physicsSystem);
 
-    inputSystem.mapAction('moveForward', 'w');
-    inputSystem.mapAction('moveBackward', 's');
-    inputSystem.mapAction('moveLeft', 'a');
-    inputSystem.mapAction('moveRight', 'd');
-    inputSystem.mapAction('jump', ' ');
-
     const movement = humanEntity.getComponent('movement');
     if (movement) {
         movement.setInputSystem(inputSystem);
